@@ -56,6 +56,10 @@ int main( int argc, char *argv[] )
 	char *op_ror    = "00001011";
 	char *op_sll    = "00001100";
 	char *op_srl    = "00001101";
+	char *op_lwd    = "00001110";
+	char *op_lwi    = "00001111";
+	char *op_swd    = "00010000";
+	char *op_swi    = "00010001";
 	
 	/************************************************************************/
 	
