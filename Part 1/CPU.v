@@ -258,6 +258,24 @@ module cpu(PC,INSTRUCTION,CLK,RESET);
 								bj = 2'b00;				//Normal
 								Shift_Choice = 1'b1; //Changing to right shift
 							end
+
+
+			//New OPCODES for Data Memory
+
+			//Load word
+			8'b00001110:	begin
+							end
+
+
+			//Load immediate
+			8'b00001111:	begin
+							end
+			//Stroe word
+			8'b00010000:	begin
+							end
+			//Store immediate
+			8'b00010001:	begin
+							end
 		endcase
 		
 	end

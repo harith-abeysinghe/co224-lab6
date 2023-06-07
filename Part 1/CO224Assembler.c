@@ -161,6 +161,10 @@ int main( int argc, char *argv[] )
 			else if(strcasecmp(in_token,"sra")==0) strcpy(out_token, op_sra);
 			else if(strcasecmp(in_token,"sll")==0) strcpy(out_token, op_sll);
 			else if(strcasecmp(in_token,"srl")==0) strcpy(out_token, op_srl);
+			else if(strcasecmp(in_token,"lwd")==0) strcpy(out_token, op_lwd);
+			else if(strcasecmp(in_token,"lwi")==0) strcpy(out_token, op_lwi);
+			else if(strcasecmp(in_token,"swd")==0) strcpy(out_token, op_swd);
+			else if(strcasecmp(in_token,"swi")==0) strcpy(out_token, op_swi);
 
 			// Encoding register numbers
 			else if(strcmp(in_token,"0")==0 || strcmp(in_token,"0\n")==0) strcpy(out_token, "00000000");
