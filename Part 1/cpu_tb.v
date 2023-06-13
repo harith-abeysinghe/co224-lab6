@@ -10,6 +10,13 @@ module cpu_tb;
     reg CLK, RESET;
     wire [31:0] PC;
     wire [31:0] INSTRUCTION;
+
+    //Adding wires and registers for data memory
+    wire READ, WRITE;
+    wire [7:0] READDATA;
+    wire reg BUSYWAIT;
+
+    wire [7:0] ADDRESS, WRITEDATA;
     
     /* 
     ------------------------
@@ -42,8 +49,8 @@ module cpu_tb;
      CPU
     -----
     */
-    cpu mycpu(PC, INSTRUCTION, CLK, RESET);
-
+    cpu mycpu(PC, INSTRUCTION, CLK, RESET,BUSYWAIT, READ, WRITE, ADDRESS, WRITEDATA, READDATA);
+    dmem mydmem(CLK, RESET, READ, WRITE, ADDRESS, WRITEDATA, READDATA, BUSYWAIT);
     initial
     begin
     

@@ -2,13 +2,22 @@
 `include "REGFILE.v"
 
 
-module cpu(PC,INSTRUCTION,CLK,RESET);
+module cpu(PC,INSTRUCTION,CLK,RESET,BUSYWAIT, READMEM, WRITEMEM, ADDRESS, WRITEDATA, READDATA);
     //Input
     input [31:0] INSTRUCTION;
     input CLK,RESET;
 
     //output
     output reg [31:0] PC;
+
+	//New wires and regs for data memory
+	//----------------------------------
+	input BUSYWAIT;
+    input [7:0] READDATA;
+
+	output READMEM, WRITEMEM;
+    output [7:0] ADDRESS, WRITEDATA;
+	//----------------------------------
 
     //Wires for reg_file
     wire [2:0] READREG1, READREG2, WRITEREG;
@@ -77,6 +86,9 @@ module cpu(PC,INSTRUCTION,CLK,RESET);
 	wire [7:0] out_multi;
 	multiplication mult(in1_multi, in2_multi, out_multi);
 	
+	//Data memory
+    assign WRITEDATA = REGOUT1;
+    assign ADDRESS = ALURESULT;
 	
 	
 	//Update PC in every positive edge clock cycles
@@ -280,6 +292,29 @@ module cpu(PC,INSTRUCTION,CLK,RESET);
 
 endmodule
 
+always @(BUSYWAIT)  begin
+		if(~BUSYWAIT) begin
+			MEMREAD=0;
+			MEMWRITE=0;
+		end
+	end
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 // This module calculates 2nd's complement
 module twocomp(IN, OUT);
@@ -318,27 +353,6 @@ module mux(IN1, IN2, SELECT, OUT);
 	end
 
 endmodule
-
-
-// Newly Added Modules 
-
-// Module for Flow Control
-// This module was updated in part 5
-/* module flowcontrol(jump, branch, zero, out);
-
-    // Input ports
-
-	// jump & branch are from CU
-	// zero is from ALU
-    input jump, branch, zero;
-
-    // Output ports
-    output out;
-
-    assign out = jump | (branch & zero);
-    // Flow control output (out) is true if jump is true or if both branch and zero are true
-
-endmodule */
 
 
 // Module to Calculate PC + 4
