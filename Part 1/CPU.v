@@ -1,7 +1,5 @@
 `include "ALU.v"
 `include "REGFILE.v"
-`include "dmem.v"
-
 
 
 module cpu(PC,INSTRUCTION,CLK,RESET);

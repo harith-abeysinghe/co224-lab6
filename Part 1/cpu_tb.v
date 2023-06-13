@@ -1,8 +1,10 @@
- // Computer Architecture (CO224) - Lab 06
+// Computer Architecture (CO224) - Lab 06
 // Design: Testbench of Integrated CPU of Simple Processor with Data Memory
 // Author: Isuru Nawinne
+
 `include "CPU.v"
 `include "dmem.v"
+
 module cpu_tb;
 
     reg CLK, RESET;
