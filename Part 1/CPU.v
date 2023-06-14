@@ -17,7 +17,7 @@ module cpu(PC,INSTRUCTION,CLK,RESET,BUSYWAIT, READMEM, WRITEMEM, ADDRESS, WRITED
     input [7:0] READDATA;
 
 	output reg READMEM, WRITEMEM;
-    output reg [7:0] ADDRESS, WRITEDATA;
+    output [7:0] ADDRESS, WRITEDATA;
 	//----------------------------------
 
     //Wires for reg_file
@@ -90,6 +90,12 @@ module cpu(PC,INSTRUCTION,CLK,RESET,BUSYWAIT, READMEM, WRITEMEM, ADDRESS, WRITED
 	//Data memory
     assign WRITEDATA = REGOUT1;
     assign ADDRESS = ALURESULT;
+
+	//New Mux
+	//Using ALURESULT, READDATA, MUX3
+	reg SEL_MUX3 = 0;
+	wire [7:0] MUX3;
+	mux mux4(ALURESULT, READDATA,SEL_MUX3, MUX3);
 	
 	
 	//Update PC in every positive edge clock cycles
@@ -140,6 +146,7 @@ module cpu(PC,INSTRUCTION,CLK,RESET,BUSYWAIT, READMEM, WRITEMEM, ADDRESS, WRITED
 								signSelect = 1'b0;		//Set sign select MUX to positive sign
 								WRITEENABLE = 1'b1;		//Enable writing to register
 								bj = 2'b00;			// Branch is 0
+								SEL_MUX3 = 0;
 								
 							end
 		
@@ -150,6 +157,7 @@ module cpu(PC,INSTRUCTION,CLK,RESET,BUSYWAIT, READMEM, WRITEMEM, ADDRESS, WRITED
 								signSelect = 1'b0;		//Set sign select MUX to positive sign
 								WRITEENABLE = 1'b1;		//Enable writing to register
 								bj = 2'b00;			// No branch or jump
+								SEL_MUX3 = 0;
 							end
 			
 			//add - 2
@@ -159,6 +167,7 @@ module cpu(PC,INSTRUCTION,CLK,RESET,BUSYWAIT, READMEM, WRITEMEM, ADDRESS, WRITED
 								signSelect = 1'b0;		//Set sign select MUX to positive sign
 								WRITEENABLE = 1'b1;		//Enable writing to register
 								bj = 2'b00;			// No branch or jump
+								SEL_MUX3 = 0;
 
 							end	
 		
@@ -169,6 +178,7 @@ module cpu(PC,INSTRUCTION,CLK,RESET,BUSYWAIT, READMEM, WRITEMEM, ADDRESS, WRITED
 								signSelect = 1'b1;		//Set sign select MUX to negative sign
 								WRITEENABLE = 1'b1;		//Enable writing to register
 								bj = 2'b00;			// No branch or jump
+								SEL_MUX3 = 0;
 
 							end
 
@@ -179,6 +189,7 @@ module cpu(PC,INSTRUCTION,CLK,RESET,BUSYWAIT, READMEM, WRITEMEM, ADDRESS, WRITED
 								signSelect = 1'b0;		//Set sign select MUX to positive sign
 								WRITEENABLE = 1'b1;		//Enable writing to register
 								bj = 2'b00;			// No branch or jump
+								SEL_MUX3 = 0;
 
 							end
 							
@@ -189,6 +200,7 @@ module cpu(PC,INSTRUCTION,CLK,RESET,BUSYWAIT, READMEM, WRITEMEM, ADDRESS, WRITED
 								signSelect = 1'b0;		//Set sign select MUX to positive sign
 								WRITEENABLE = 1'b1;		//Enable writing to register
 								bj = 2'b00;			// No branch or jump
+								SEL_MUX3 = 0;
 
 							end
 			
@@ -199,6 +211,7 @@ module cpu(PC,INSTRUCTION,CLK,RESET,BUSYWAIT, READMEM, WRITEMEM, ADDRESS, WRITED
 			8'b00000110:	begin
 								WRITEENABLE = 1'b0;		//Enable writing to register
 								bj = 2'b01;				// jump
+								SEL_MUX3 = 0;
 
 							end
 						
@@ -209,6 +222,7 @@ module cpu(PC,INSTRUCTION,CLK,RESET,BUSYWAIT, READMEM, WRITEMEM, ADDRESS, WRITED
 								immSelect = 1'b1;		//Set MUX to select immediate value
 								signSelect = 1'b1;		//Set sign select MUX to negative sign
 								bj = 2'b10;				// BEQ
+								SEL_MUX3 = 0;
 							end
 
 
@@ -221,6 +235,7 @@ module cpu(PC,INSTRUCTION,CLK,RESET,BUSYWAIT, READMEM, WRITEMEM, ADDRESS, WRITED
 								immSelect = 1'b0;		//Set MUX to select register value
 								signSelect = 1'b0;		//Set sign select MUX to positive sign
 								bj = 2'b00;			// No branch or jump
+								SEL_MUX3 = 0;
 							end
 
 
@@ -231,6 +246,7 @@ module cpu(PC,INSTRUCTION,CLK,RESET,BUSYWAIT, READMEM, WRITEMEM, ADDRESS, WRITED
 								immSelect = 1'b1;		//Set MUX to select register value
 								signSelect = 1'b1;		//Set sign select MUX to positive sign
 								bj = 2'b11;				// BNE
+								SEL_MUX3 = 0;
 							end
 
 			//arithmetic rigth - 10 
@@ -240,6 +256,7 @@ module cpu(PC,INSTRUCTION,CLK,RESET,BUSYWAIT, READMEM, WRITEMEM, ADDRESS, WRITED
 								immSelect = 1'b0;		//Set MUX to select register value
 								signSelect = 1'b0;		//Set sign select MUX to positive sign
 								bj = 2'b00;				// Normal
+								SEL_MUX3 = 0;
 							end
 
 
@@ -250,6 +267,7 @@ module cpu(PC,INSTRUCTION,CLK,RESET,BUSYWAIT, READMEM, WRITEMEM, ADDRESS, WRITED
 								immSelect = 1'b0;		//Set MUX to select register value
 								signSelect = 1'b0;		//Set sign select MUX to positive sign
 								bj = 2'b00;				//Normal
+								SEL_MUX3 = 0;
 							end
 			// Left Shift - 12 
 			8'b00001100:	begin
@@ -258,6 +276,7 @@ module cpu(PC,INSTRUCTION,CLK,RESET,BUSYWAIT, READMEM, WRITEMEM, ADDRESS, WRITED
 								immSelect = 1'b0;		//Set MUX to select register value
 								signSelect = 1'b0;		//Set sign select MUX to positive sign
 								bj = 2'b00;				//Normal
+								SEL_MUX3 = 0;
 							end
 
 			// Left Shift - 12 
@@ -268,6 +287,7 @@ module cpu(PC,INSTRUCTION,CLK,RESET,BUSYWAIT, READMEM, WRITEMEM, ADDRESS, WRITED
 								signSelect = 1'b0;		//Set sign select MUX to positive sign
 								bj = 2'b00;				//Normal
 								Shift_Choice = 1'b1; //Changing to right shift
+								SEL_MUX3 = 0;
 							end
 
 
@@ -282,8 +302,9 @@ module cpu(PC,INSTRUCTION,CLK,RESET,BUSYWAIT, READMEM, WRITEMEM, ADDRESS, WRITED
 								bj = 2'b00; 	//normal flow
 								READMEM = 1;			//assigning the READMEM into 1
 								WRITEMEM = 0;
-								MUX3 = 1;			//selecting the readdata value into the register file
-								SEL_PC = 2'b00;
+								
+								SEL_MUX3 = 1;
+								
 							end
 							
 
@@ -297,8 +318,9 @@ module cpu(PC,INSTRUCTION,CLK,RESET,BUSYWAIT, READMEM, WRITEMEM, ADDRESS, WRITED
 								bj = 2'b00; 	//normal flow
 								READMEM = 1;			//assigning the READMEM into 1
 								WRITEMEM = 0;
-								MUX3 = 1;			//selecting the readdata value into the register file
-								SEL_PC = 2'b00;
+								//MUX3 = 1;			//selecting the readdata value into the register file
+								SEL_MUX3 = 1;
+								
 							end
 			//Stroe word
 			8'b00010000:	begin
@@ -309,8 +331,8 @@ module cpu(PC,INSTRUCTION,CLK,RESET,BUSYWAIT, READMEM, WRITEMEM, ADDRESS, WRITED
 								bj = 2'b00; 	//normal flow
 								WRITEMEM = 1;		//assigning the WRITEMEM into 1
 								READMEM = 0;
-								MUX3 = 0;			//selecting the aluresult value into the register file
-								SEL_PC = 2'b00;
+								//MUX3 = 0;			//selecting the aluresult value into the register file
+								SEL_MUX3 = 0;
 							end
 			//Store immediate
 			8'b00010001:	begin
@@ -321,8 +343,9 @@ module cpu(PC,INSTRUCTION,CLK,RESET,BUSYWAIT, READMEM, WRITEMEM, ADDRESS, WRITED
 								bj = 2'b00; 	//normal flow
 								WRITEMEM = 1;		//assigning the WRITEMEM into 1
 								READMEM = 0;
-								MUX3 = 0;			//selecting the aluresult value into the register file
-								SEL_PC = 2'b00;
+								//MUX3 = 0;			//selecting the aluresult value into the register file
+								SEL_MUX3 = 0;
+								
 							end
 		endcase
 		
@@ -339,24 +362,6 @@ always @(BUSYWAIT)
 	end
 
 endmodule
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 // This module calculates 2nd's complement
