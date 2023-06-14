@@ -50,7 +50,7 @@ module cpu_tb;
     -----
     */
     cpu mycpu(PC, INSTRUCTION, CLK, RESET,BUSYWAIT, READ, WRITE, ADDRESS, WRITEDATA, READDATA);
-    dmem mydmem(CLK, RESET, READ, WRITE, ADDRESS, WRITEDATA, READDATA, BUSYWAIT);
+    data_memory mydmem(CLK, RESET, READ, WRITE, ADDRESS, WRITEDATA, READDATA, BUSYWAIT);
     initial
     begin
     

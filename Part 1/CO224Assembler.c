@@ -220,7 +220,7 @@ int main( int argc, char *argv[] )
 			in_token = strtok(NULL, delim);
 		}
 		
-		if(count==4) // Line contains a valid instruction
+		if(count==10) // Line contains a valid instruction
 			fputs("\n", fo);
 		else if(count!=0) // Line is neither a valid instruction, nor a valid comment / empty line
 		{
