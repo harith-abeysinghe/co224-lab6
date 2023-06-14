@@ -16,8 +16,8 @@ module cpu(PC,INSTRUCTION,CLK,RESET,BUSYWAIT, READMEM, WRITEMEM, ADDRESS, WRITED
 	input BUSYWAIT;
     input [7:0] READDATA;
 
-	output READMEM, WRITEMEM;
-    output [7:0] ADDRESS, WRITEDATA;
+	output reg READMEM, WRITEMEM;
+    output reg [7:0] ADDRESS, WRITEDATA;
 	//----------------------------------
 
     //Wires for reg_file
@@ -279,7 +279,7 @@ module cpu(PC,INSTRUCTION,CLK,RESET,BUSYWAIT, READMEM, WRITEMEM, ADDRESS, WRITED
 								signSelect = 0;    		//Selecting the positive number
 								immSelect = 0;   		//Selecting the immediate operand
 								ALUOP = 3'b101;		//selecting the ADD operation from ALU
-								BJSelect = 2'b00; 	//normal flow
+								bj = 2'b00; 	//normal flow
 								READMEM = 1;			//assigning the READMEM into 1
 								WRITEMEM = 0;
 								MUX3 = 1;			//selecting the readdata value into the register file
@@ -294,7 +294,7 @@ module cpu(PC,INSTRUCTION,CLK,RESET,BUSYWAIT, READMEM, WRITEMEM, ADDRESS, WRITED
 								signSelect = 0;    		//Selecting the positive number
 								immSelect = 0;   		//Selecting the immediate operand
 								ALUOP = 3'b101;		//selecting the ADD operation from ALU
-								BJSelect = 2'b00; 	//normal flow
+								bj = 2'b00; 	//normal flow
 								READMEM = 1;			//assigning the READMEM into 1
 								WRITEMEM = 0;
 								MUX3 = 1;			//selecting the readdata value into the register file
@@ -306,7 +306,7 @@ module cpu(PC,INSTRUCTION,CLK,RESET,BUSYWAIT, READMEM, WRITEMEM, ADDRESS, WRITED
 								signSelect = 0;    		//Selecting the positive number
 								immSelect = 0;   		//Selecting the immediate operand
 								ALUOP = 3'b101;		//selecting the ADD operation from ALU
-								BJSelect = 2'b00; 	//normal flow
+								bj = 2'b00; 	//normal flow
 								WRITEMEM = 1;		//assigning the WRITEMEM into 1
 								READMEM = 0;
 								MUX3 = 0;			//selecting the aluresult value into the register file
@@ -318,7 +318,7 @@ module cpu(PC,INSTRUCTION,CLK,RESET,BUSYWAIT, READMEM, WRITEMEM, ADDRESS, WRITED
 								signSelect= 0;    		//Selecting the positive number
 								immSelect = 0;   		//Selecting the immediate operand
 								ALUOP = 3'b101;		//selecting the ADD operation from ALU
-								BJSelect = 2'b00; 	//normal flow
+								bj = 2'b00; 	//normal flow
 								WRITEMEM = 1;		//assigning the WRITEMEM into 1
 								READMEM = 0;
 								MUX3 = 0;			//selecting the aluresult value into the register file
