@@ -274,30 +274,72 @@ module cpu(PC,INSTRUCTION,CLK,RESET,BUSYWAIT, READMEM, WRITEMEM, ADDRESS, WRITED
 
 			//Load word
 			8'b00001110:	begin
+								assign WRITE = 1;   		//Trigerring the write enable
+								assign  MUX1= 0;    		//Selecting the positive number
+								assign  MUX2 = 0;   		//Selecting the immediate operand
+								assign ALUOP = 3'b101;		//selecting the ADD operation from ALU
+								assign BJSelect = 2'b00; 	//normal flow
+								assign MEMREAD = 1;			//assigning the memread into 1
+								assign MEMWRITE = 0;
+								assign MUX3 = 1;			//selecting the readdata value into the register file
+								assign SEL_PC = 2'b00;
 							end
+							
 
 
 			//Load immediate
 			8'b00001111:	begin
+								assign WRITE = 1;   		//Trigerring the write enable
+								assign  MUX1= 0;    		//Selecting the positive number
+								assign  MUX2 = 0;   		//Selecting the immediate operand
+								assign ALUOP = 3'b101;		//selecting the ADD operation from ALU
+								assign BJSelect = 2'b00; 	//normal flow
+								assign MEMREAD = 1;			//assigning the memread into 1
+								assign MEMWRITE = 0;
+								assign MUX3 = 1;			//selecting the readdata value into the register file
+								assign SEL_PC = 2'b00;
 							end
 			//Stroe word
 			8'b00010000:	begin
+								assign WRITE = 1;   		//Trigerring the write enable
+								assign  MUX1= 0;    		//Selecting the positive number
+								assign  MUX2 = 0;   		//Selecting the immediate operand
+								assign ALUOP = 3'b101;		//selecting the ADD operation from ALU
+								assign BJSelect = 2'b00; 	//normal flow
+								assign MEMWRITE = 1;		//assigning the memwrite into 1
+								assign MEMREAD = 0;
+								assign MUX3 = 0;			//selecting the aluresult value into the register file
+								assign SEL_PC = 2'b00;
 							end
 			//Store immediate
 			8'b00010001:	begin
+								assign WRITE = 1;   		//Trigerring the write enable
+								assign  MUX1= 0;    		//Selecting the positive number
+								assign  MUX2 = 0;   		//Selecting the immediate operand
+								assign ALUOP = 3'b101;		//selecting the ADD operation from ALU
+								assign BJSelect = 2'b00; 	//normal flow
+								assign MEMWRITE = 1;		//assigning the memwrite into 1
+								assign MEMREAD = 0;
+								assign MUX3 = 0;			//selecting the aluresult value into the register file
+								assign SEL_PC = 2'b00;
 							end
 		endcase
 		
 	end
 
-endmodule
 
-always @(BUSYWAIT)  begin
-		if(~BUSYWAIT) begin
+always @(BUSYWAIT)  
+	begin
+		if(~BUSYWAIT) 
+		begin
 			MEMREAD=0;
 			MEMWRITE=0;
 		end
 	end
+
+endmodule
+
+
 
 
 
