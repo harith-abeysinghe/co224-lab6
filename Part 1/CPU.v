@@ -1,6 +1,6 @@
 `include "ALU.v"
 `include "REGFILE.v"
-`include "dmem.v"
+
 
 
 module cpu(PC,INSTRUCTION,CLK,RESET,BUSYWAIT, READMEM, WRITEMEM, ADDRESS, WRITEDATA, READDATA);
@@ -69,12 +69,13 @@ module cpu(PC,INSTRUCTION,CLK,RESET,BUSYWAIT, READMEM, WRITEMEM, ADDRESS, WRITED
 	OFFSETADDER target(PCreg, OFFSET, offset_out);
 	
 	//mux 3
+	wire flow_out;
 	wire [31:0] NewPC; 
 	muxNew MUX4(PCreg, offset_out,flow_out, NewPC);
 
 	//Flow control ports
 	reg [1:0] bj;
-	wire flow_out;
+	
 
 	//Flow control 
 	flowcontrol flow(bj, ZERO, flow_out);
@@ -92,10 +93,10 @@ module cpu(PC,INSTRUCTION,CLK,RESET,BUSYWAIT, READMEM, WRITEMEM, ADDRESS, WRITED
     assign ADDRESS = ALURESULT;
 
 	//New Mux
-	//Using ALURESULT, READDATA, MUX4
+	//Using ALURESULT, READDATA, MUX5
 	reg SEL_MUX4 = 0;
-	wire [7:0] MUX4;
-	mux mux4(ALURESULT, READDATA,SEL_MUX4, MUX4);
+	wire [7:0] MUX5;
+	mux mux4(ALURESULT, READDATA,SEL_MUX4, MUX5);
 	
 	
 	//Update PC in every positive edge clock cycles
@@ -107,6 +108,7 @@ module cpu(PC,INSTRUCTION,CLK,RESET,BUSYWAIT, READMEM, WRITEMEM, ADDRESS, WRITED
 			PC = 0;	
 			PCreg = 0;
 		end
+		else if (BUSYWAIT == 1'b1);	
 		else #1 PC = NewPC;	// Else update the PC counter
 	end
 	
@@ -318,7 +320,7 @@ module cpu(PC,INSTRUCTION,CLK,RESET,BUSYWAIT, READMEM, WRITEMEM, ADDRESS, WRITED
 								bj = 2'b00; 	//normal flow
 								READMEM = 1;			//assigning the READMEM into 1
 								WRITEMEM = 0;
-								//MUX4 = 1;			//selecting the readdata value into the register file
+								//MUX5 = 1;			//selecting the readdata value into the register file
 								SEL_MUX4 = 1;
 								
 							end
@@ -331,7 +333,7 @@ module cpu(PC,INSTRUCTION,CLK,RESET,BUSYWAIT, READMEM, WRITEMEM, ADDRESS, WRITED
 								bj = 2'b00; 	//normal flow
 								WRITEMEM = 1;		//assigning the WRITEMEM into 1
 								READMEM = 0;
-								//MUX4 = 0;			//selecting the aluresult value into the register file
+				
 								SEL_MUX4 = 0;
 							end
 			//Store immediate
@@ -343,7 +345,7 @@ module cpu(PC,INSTRUCTION,CLK,RESET,BUSYWAIT, READMEM, WRITEMEM, ADDRESS, WRITED
 								bj = 2'b00; 	//normal flow
 								WRITEMEM = 1;		//assigning the WRITEMEM into 1
 								READMEM = 0;
-								//MUX4 = 0;			//selecting the aluresult value into the register file
+								
 								SEL_MUX4 = 0;
 								
 							end
