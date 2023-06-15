@@ -300,7 +300,7 @@ module cpu(PC,INSTRUCTION,CLK,RESET,BUSYWAIT, READMEM, WRITEMEM, ADDRESS, WRITED
 								WRITEENABLE = 1'b1;   		//Trigerring the write enable
 								signSelect = 0;    		//Selecting the positive number
 								immSelect = 0;   		//Selecting the immediate operand
-								ALUOP = 3'b101;		//selecting the ADD operation from ALU
+								ALUOP = 3'b000;		//selecting the ADD operation from ALU
 								bj = 2'b00; 	//normal flow
 								READMEM = 1;			//assigning the READMEM into 1
 								WRITEMEM = 0;
@@ -316,7 +316,7 @@ module cpu(PC,INSTRUCTION,CLK,RESET,BUSYWAIT, READMEM, WRITEMEM, ADDRESS, WRITED
 								WRITEENABLE = 1'b1;   		//Trigerring the write enable
 								signSelect = 0;    		//Selecting the positive number
 								immSelect = 0;   		//Selecting the immediate operand
-								ALUOP = 3'b101;		//selecting the ADD operation from ALU
+								ALUOP = 3'b000;		//selecting the ADD operation from ALU
 								bj = 2'b00; 	//normal flow
 								READMEM = 1;			//assigning the READMEM into 1
 								WRITEMEM = 0;
@@ -329,7 +329,7 @@ module cpu(PC,INSTRUCTION,CLK,RESET,BUSYWAIT, READMEM, WRITEMEM, ADDRESS, WRITED
 								WRITEENABLE = 1'b1;   		//Trigerring the write enable
 								signSelect = 0;    		//Selecting the positive number
 								immSelect = 0;   		//Selecting the immediate operand
-								ALUOP = 3'b101;		//selecting the ADD operation from ALU
+								ALUOP = 3'b000;		//selecting the ADD operation from ALU
 								bj = 2'b00; 	//normal flow
 								WRITEMEM = 1;		//assigning the WRITEMEM into 1
 								READMEM = 0;
@@ -341,7 +341,7 @@ module cpu(PC,INSTRUCTION,CLK,RESET,BUSYWAIT, READMEM, WRITEMEM, ADDRESS, WRITED
 								WRITEENABLE = 1'b1;   		//Trigerring the write enable
 								signSelect= 0;    		//Selecting the positive number
 								immSelect = 0;   		//Selecting the immediate operand
-								ALUOP = 3'b101;		//selecting the ADD operation from ALU
+								ALUOP = 3'b000;		//selecting the ADD operation from ALU
 								bj = 2'b00; 	//normal flow
 								WRITEMEM = 1;		//assigning the WRITEMEM into 1
 								READMEM = 0;
