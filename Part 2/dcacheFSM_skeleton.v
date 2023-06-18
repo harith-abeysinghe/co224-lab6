@@ -11,7 +11,7 @@ This file presents a skeleton implementation of the cache controller using a Fin
 
 
 module dcache (clk, read, write, reset, busywait ,mem_read ,mem_write ,mem_writedata ,mem_address ,readdata ,mem_busywait ,mem_readdata ,address ,writedata) ;
-    //mem - Main memory
+    //mem - Main memory , Has 32 bits for readdata, writedata, 5 bits for address
     input read,write,mem_busywait,clk,reset;
     input [7:0] writedata,address;
     input [31:0] mem_readdata;
@@ -160,29 +160,41 @@ module dcache (clk, read, write, reset, busywait ,mem_read ,mem_write ,mem_write
 
     /* Cache Controller FSM Start */
 
-    parameter IDLE = 3'b000, MEM_READ = 3'b001;
+    parameter IDLE = 3'b000, MEM_READ = 3'b001, MEM_WRITE = 3'b010;
     reg [2:0] state, next_state;
 
-    // combinational next state logic
-    always @(*)
+    // Combinational next state logic
+    always @(read, write, dirty, hit, mem_busywait) 
     begin
         case (state)
             IDLE:
-                if ((read || write) && !dirty && !hit)  
+                // If there is a read or write operation and the data in the cache entry is consistent (not dirty) and it's a cache miss, go to MEM_READ state
+                if ((read || write) && !dirty && !hit)
                     next_state = MEM_READ;
-                else if (...)
-                    next_state = ...;
+                // If there is a read or write operation and the data in the cache entry is inconsistent (dirty) and it's a cache miss, go to MEM_WRITE state
+                else if ((read || write) && dirty && !hit)
+                    next_state = MEM_WRITE;
                 else
-                    next_state = IDLE;
-            
+                    next_state = IDLE; // Stay in IDLE state when there is no cache miss
+
             MEM_READ:
+                // After finishing reading from memory, go back to IDLE state
+                // mem_busywait going low indicates that reading is finished
                 if (!mem_busywait)
-                    next_state = ...;
-                else    
+                    next_state = IDLE;
+                else
+                    next_state = MEM_READ; // Stay in MEM_READ state while reading from memory
+
+            MEM_WRITE:
+                // After finishing writing to memory, go to MEM_READ state
+                // mem_busywait going low indicates that writing is finished
+                if (!mem_busywait)
                     next_state = MEM_READ;
-            
+                else
+                    next_state = MEM_WRITE; // Stay in MEM_WRITE state while writing to memory
         endcase
     end
+
 
     // combinational output logic
     always @(*)
@@ -192,9 +204,10 @@ module dcache (clk, read, write, reset, busywait ,mem_read ,mem_write ,mem_write
             begin
                 mem_read = 0;
                 mem_write = 0;
-                mem_address = 8'dx;
-                mem_writedata = 8'dx;
+                mem_address = 6'dx;
+                mem_writedata = 32'dx;
                 busywait = 0;
+                update = 0;
             end
          
             MEM_READ: 
@@ -203,6 +216,16 @@ module dcache (clk, read, write, reset, busywait ,mem_read ,mem_write ,mem_write
                 mem_write = 0;
                 mem_address = {tag, index};
                 mem_writedata = 32'dx;
+                busywait = 1;
+                update = 1;
+            end
+
+            MEM_WRITE:
+            begin
+                mem_read = 0;
+                mem_write = 1;
+                mem_address = {tag_of_block, index};
+                mem_writedata = cache[index];
                 busywait = 1;
             end
             
@@ -214,10 +237,16 @@ module dcache (clk, read, write, reset, busywait ,mem_read ,mem_write ,mem_write
     begin
         if(reset)
             state = IDLE;
+            validbits = 0;	
+            dirtybits = 0; 
         else
             state = next_state;
     end
 
     /* Cache Controller FSM End */
 
+initial 
+begin
+    $monitor($time,"\t Read = %d \t Write = %d", read, write);
+end
 endmodule
