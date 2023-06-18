@@ -315,7 +315,7 @@ module cpu(PC,INSTRUCTION,CLK,RESET,BUSYWAIT, READMEM, WRITEMEM, ADDRESS, WRITED
 			8'b00001111:	begin
 								WRITEENABLE = 1'b1;   		//Trigerring the write enable
 								signSelect = 0;    		//Selecting the positive number
-								immSelect = 0;   		//Selecting the immediate operand
+								immSelect = 1;   		//Selecting the immediate operand
 								ALUOP = 3'b000;		//selecting the ADD operation from ALU
 								bj = 2'b00; 	//normal flow
 								READMEM = 1;			//assigning the READMEM into 1
@@ -340,7 +340,7 @@ module cpu(PC,INSTRUCTION,CLK,RESET,BUSYWAIT, READMEM, WRITEMEM, ADDRESS, WRITED
 			8'b00010001:	begin
 								WRITEENABLE = 1'b1;   		//Trigerring the write enable
 								signSelect= 0;    		//Selecting the positive number
-								immSelect = 0;   		//Selecting the immediate operand
+								immSelect = 1;   		//Selecting the immediate operand
 								ALUOP = 3'b000;		//selecting the ADD operation from ALU
 								bj = 2'b00; 	//normal flow
 								WRITEMEM = 1;		//assigning the WRITEMEM into 1
