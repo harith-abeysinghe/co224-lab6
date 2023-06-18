@@ -1,0 +1,590 @@
+$date
+	Sun Jun 18 21:34:12 2023
+$end
+$version
+	Icarus Verilog
+$end
+$timescale
+	100ps
+$end
+$scope module cpu_tb $end
+$var wire 8 ! WRITEDATA [7:0] $end
+$var wire 1 " WRITE $end
+$var wire 8 # READDATA [7:0] $end
+$var wire 1 $ READ $end
+$var wire 32 % PC [31:0] $end
+$var wire 1 & MEM_WRITE $end
+$var wire 1 ' MEM_READ $end
+$var wire 32 ( MEM_OUT [31:0] $end
+$var wire 32 ) MEM_IN [31:0] $end
+$var wire 1 * MEM_BUSYWAIT $end
+$var wire 6 + MEM_ADDRESS [5:0] $end
+$var wire 32 , INSTRUCTION [31:0] $end
+$var wire 1 - BUSYWAIT $end
+$var wire 8 . ADDRESS [7:0] $end
+$var reg 1 / CLK $end
+$var reg 1 0 RESET $end
+$scope module mycache $end
+$var wire 1 / clk $end
+$var wire 1 0 reset $end
+$var wire 8 1 writedata [7:0] $end
+$var wire 1 " write $end
+$var wire 3 2 tag [2:0] $end
+$var wire 1 $ read $end
+$var wire 2 3 offset [1:0] $end
+$var wire 32 4 mem_readdata [31:0] $end
+$var wire 1 * mem_busywait $end
+$var wire 3 5 index [2:0] $end
+$var wire 8 6 address [7:0] $end
+$var reg 1 - busywait $end
+$var reg 1 7 checkhit $end
+$var reg 1 8 dirty $end
+$var reg 8 9 dirtybits [7:0] $end
+$var reg 1 : hit $end
+$var reg 6 ; mem_address [5:0] $end
+$var reg 1 ' mem_read $end
+$var reg 1 & mem_write $end
+$var reg 32 < mem_writedata [31:0] $end
+$var reg 3 = next_state [2:0] $end
+$var reg 8 > readdata [7:0] $end
+$var reg 1 ? readfromcache $end
+$var reg 3 @ state [2:0] $end
+$var reg 3 A tag_of_block [2:0] $end
+$var reg 1 B update $end
+$var reg 1 C valid $end
+$var reg 8 D validbits [7:0] $end
+$var reg 1 E writetocache $end
+$upscope $end
+$scope module mycpu $end
+$var wire 8 F ADDRESS [7:0] $end
+$var wire 1 - BUSYWAIT $end
+$var wire 1 / CLK $end
+$var wire 32 G INSTRUCTION [31:0] $end
+$var wire 8 H OFFSET [7:0] $end
+$var wire 8 I READDATA [7:0] $end
+$var wire 1 0 RESET $end
+$var wire 8 J WRITEDATA [7:0] $end
+$var wire 8 K registerOp [7:0] $end
+$var wire 8 L out_multi [7:0] $end
+$var wire 32 M offset_out [31:0] $end
+$var wire 8 N negatedOp [7:0] $end
+$var wire 8 O in2_multi [7:0] $end
+$var wire 8 P in1_multi [7:0] $end
+$var wire 1 Q flow_out $end
+$var wire 1 R ZERO $end
+$var wire 3 S WRITEREG [2:0] $end
+$var wire 4 T Shift [3:0] $end
+$var wire 8 U REGOUT2 [7:0] $end
+$var wire 8 V REGOUT1 [7:0] $end
+$var wire 3 W READREG2 [2:0] $end
+$var wire 3 X READREG1 [2:0] $end
+$var wire 8 Y OPERAND2 [7:0] $end
+$var wire 32 Z NewPC [31:0] $end
+$var wire 8 [ MUX5 [7:0] $end
+$var wire 8 \ IMMEDIATE [7:0] $end
+$var wire 8 ] ALURESULT [7:0] $end
+$var reg 3 ^ ALUOP [2:0] $end
+$var reg 8 _ OPCODE [7:0] $end
+$var reg 32 ` PC [31:0] $end
+$var reg 32 a PCreg [31:0] $end
+$var reg 1 $ READMEM $end
+$var reg 1 b SEL_MUX4 $end
+$var reg 1 c Shift_Choice $end
+$var reg 1 d WRITEENABLE $end
+$var reg 1 " WRITEMEM $end
+$var reg 2 e bj [1:0] $end
+$var reg 1 f immSelect $end
+$var reg 1 g signSelect $end
+$scope module MUX4 $end
+$var wire 32 h IN1 [31:0] $end
+$var wire 1 Q SELECT $end
+$var wire 32 i IN2 [31:0] $end
+$var reg 32 j OUT [31:0] $end
+$upscope $end
+$scope module alu1 $end
+$var wire 1 c CHOICE $end
+$var wire 3 k SELECT [2:0] $end
+$var wire 4 l SHIFT [3:0] $end
+$var wire 1 R ZERO $end
+$var wire 8 m DATA2 [7:0] $end
+$var wire 8 n DATA1 [7:0] $end
+$var wire 8 o C7 [7:0] $end
+$var wire 8 p C6 [7:0] $end
+$var wire 8 q C5 [7:0] $end
+$var wire 8 r C4 [7:0] $end
+$var wire 8 s C3 [7:0] $end
+$var wire 8 t C2 [7:0] $end
+$var wire 8 u C1 [7:0] $end
+$var wire 8 v C0 [7:0] $end
+$var reg 8 w RESULT [7:0] $end
+$scope module case0 $end
+$var wire 8 x RESULT [7:0] $end
+$var wire 8 y DATA2 [7:0] $end
+$var wire 8 z DATA1 [7:0] $end
+$upscope $end
+$scope module case1 $end
+$var wire 8 { RESULT [7:0] $end
+$var wire 8 | DATA2 [7:0] $end
+$var wire 8 } DATA1 [7:0] $end
+$upscope $end
+$scope module case2 $end
+$var wire 8 ~ RESULT [7:0] $end
+$var wire 8 !" DATA2 [7:0] $end
+$var wire 8 "" DATA1 [7:0] $end
+$upscope $end
+$scope module case3 $end
+$var wire 8 #" RESULT [7:0] $end
+$var wire 8 $" DATA2 [7:0] $end
+$var wire 8 %" DATA1 [7:0] $end
+$upscope $end
+$scope module case4 $end
+$var wire 8 &" New_Num [7:0] $end
+$var wire 8 '" IN2 [7:0] $end
+$var wire 8 (" IN1 [7:0] $end
+$var reg 8 )" sum [7:0] $end
+$upscope $end
+$scope module case5 $end
+$var wire 8 *" Out_num [7:0] $end
+$var wire 4 +" SHIFT [3:0] $end
+$var wire 8 ," Number [7:0] $end
+$var reg 8 -" New_Num [7:0] $end
+$upscope $end
+$scope module case6 $end
+$var wire 8 ." Out_num [7:0] $end
+$var wire 4 /" SHIFT [3:0] $end
+$var wire 8 0" Number [7:0] $end
+$var reg 8 1" New_Num [7:0] $end
+$upscope $end
+$scope module case7 $end
+$var wire 1 c Chocie $end
+$var wire 8 2" Out_num [7:0] $end
+$var wire 4 3" SHIFT [3:0] $end
+$var wire 8 4" Number [7:0] $end
+$var reg 8 5" New_Num [7:0] $end
+$upscope $end
+$upscope $end
+$scope module flow $end
+$var wire 2 6" branch_jump [1:0] $end
+$var wire 1 Q out $end
+$var wire 1 R zero $end
+$upscope $end
+$scope module mult $end
+$var wire 8 7" IN1 [7:0] $end
+$var wire 8 8" IN2 [7:0] $end
+$var wire 8 9" New_Num [7:0] $end
+$var reg 8 :" sum [7:0] $end
+$upscope $end
+$scope module mux1 $end
+$var wire 1 g SELECT $end
+$var wire 8 ;" IN2 [7:0] $end
+$var wire 8 <" IN1 [7:0] $end
+$var reg 8 =" OUT [7:0] $end
+$upscope $end
+$scope module mux2 $end
+$var wire 8 >" IN1 [7:0] $end
+$var wire 8 ?" IN2 [7:0] $end
+$var wire 1 f SELECT $end
+$var reg 8 @" OUT [7:0] $end
+$upscope $end
+$scope module mux4 $end
+$var wire 8 A" IN1 [7:0] $end
+$var wire 8 B" IN2 [7:0] $end
+$var wire 1 b SELECT $end
+$var reg 8 C" OUT [7:0] $end
+$upscope $end
+$scope module reg_file1 $end
+$var wire 1 - BUSYWAIT $end
+$var wire 1 / CLK $end
+$var wire 8 D" IN [7:0] $end
+$var wire 3 E" INADDRESS [2:0] $end
+$var wire 8 F" OUT1 [7:0] $end
+$var wire 3 G" OUT1ADDRESS [2:0] $end
+$var wire 8 H" OUT2 [7:0] $end
+$var wire 3 I" OUT2ADDRESS [2:0] $end
+$var wire 1 0 RESET $end
+$var wire 1 d WRITE $end
+$var integer 32 J" i [31:0] $end
+$upscope $end
+$scope module target $end
+$var wire 8 K" Offset [7:0] $end
+$var wire 32 L" PC [31:0] $end
+$var wire 22 M" signBits [21:0] $end
+$var wire 32 N" Target [31:0] $end
+$upscope $end
+$scope module twocomp1 $end
+$var wire 8 O" IN [7:0] $end
+$var wire 8 P" OUT [7:0] $end
+$upscope $end
+$upscope $end
+$scope module mymemory $end
+$var wire 6 Q" address [5:0] $end
+$var wire 1 / clock $end
+$var wire 1 ' read $end
+$var wire 1 0 reset $end
+$var wire 1 & write $end
+$var wire 32 R" writedata [31:0] $end
+$var reg 1 * busywait $end
+$var reg 1 S" readaccess $end
+$var reg 32 T" readdata [31:0] $end
+$var reg 1 U" writeaccess $end
+$var integer 32 V" i [31:0] $end
+$upscope $end
+$upscope $end
+$enddefinitions $end
+#0
+$dumpvars
+b100000000 V"
+0U"
+bx T"
+0S"
+bx R"
+bx Q"
+bx P"
+bx O"
+bx N"
+bz M"
+bx L"
+bz K"
+bx J"
+bx I"
+bx H"
+bx G"
+bx F"
+bx E"
+bx D"
+bx C"
+bx B"
+bx A"
+bx @"
+bx ?"
+bx >"
+bx ="
+bx <"
+bx ;"
+bx :"
+bx 9"
+bx 8"
+bx 7"
+bx 6"
+bx 5"
+bx 4"
+bx 3"
+bx 2"
+bx 1"
+bx 0"
+bx /"
+bx ."
+bx -"
+bx ,"
+bx +"
+bx *"
+bx )"
+bx ("
+bx '"
+bx &"
+bx %"
+bx $"
+bx #"
+bx ""
+bx !"
+bx ~
+bx }
+bx |
+bx {
+bx z
+bx y
+bx x
+bx w
+bx v
+bx u
+bx t
+bx s
+bx r
+bx q
+bx p
+bx o
+bx n
+bx m
+bx l
+bx k
+bx j
+bx i
+bx h
+xg
+xf
+bx e
+xd
+0c
+0b
+bx a
+bx `
+bx _
+bx ^
+bx ]
+bx \
+bx [
+bx Z
+bx Y
+bx X
+bx W
+bx V
+bx U
+bx T
+bx S
+xR
+xQ
+bx P
+bx O
+bx N
+bx M
+bx L
+bx K
+bx J
+bx I
+bz H
+bx G
+bx F
+xE
+b0 D
+xC
+0B
+bx A
+b0 @
+x?
+bx >
+b0 =
+bx <
+bx ;
+x:
+b0 9
+x8
+x7
+bx 6
+bx 5
+bx 4
+bx 3
+bx 2
+bx 1
+10
+0/
+bx .
+0-
+bx ,
+bx +
+0*
+bx )
+bx (
+0'
+0&
+bx %
+0$
+bx #
+0"
+bx !
+$end
+#40
+b0 J"
+1/
+#50
+00
+#80
+0/
+#120
+1/
+#160
+0/
+#200
+1/
+#240
+0/
+#280
+1/
+#320
+0/
+#360
+1/
+#400
+0/
+#440
+1/
+#480
+0/
+#520
+1/
+#560
+0/
+#600
+1/
+#640
+0/
+#680
+1/
+#720
+0/
+#760
+1/
+#800
+0/
+#840
+1/
+#880
+0/
+#920
+1/
+#960
+0/
+#1000
+1/
+#1040
+0/
+#1080
+1/
+#1120
+0/
+#1160
+1/
+#1200
+0/
+#1240
+1/
+#1280
+0/
+#1320
+1/
+#1360
+0/
+#1400
+1/
+#1440
+0/
+#1480
+1/
+#1520
+0/
+#1560
+1/
+#1600
+0/
+#1640
+1/
+#1680
+0/
+#1720
+1/
+#1760
+0/
+#1800
+1/
+#1840
+0/
+#1880
+1/
+#1920
+0/
+#1960
+1/
+#2000
+0/
+#2040
+1/
+#2080
+0/
+#2120
+1/
+#2160
+0/
+#2200
+1/
+#2240
+0/
+#2280
+1/
+#2320
+0/
+#2360
+1/
+#2400
+0/
+#2440
+1/
+#2480
+0/
+#2520
+1/
+#2560
+0/
+#2600
+1/
+#2640
+0/
+#2680
+1/
+#2720
+0/
+#2760
+1/
+#2800
+0/
+#2840
+1/
+#2880
+0/
+#2920
+1/
+#2960
+0/
+#3000
+1/
+#3040
+0/
+#3080
+1/
+#3120
+0/
+#3160
+1/
+#3200
+0/
+#3240
+1/
+#3280
+0/
+#3320
+1/
+#3360
+0/
+#3400
+1/
+#3440
+0/
+#3480
+1/
+#3520
+0/
+#3560
+1/
+#3600
+0/
+#3640
+1/
+#3680
+0/
+#3720
+1/
+#3760
+0/
+#3800
+1/
+#3840
+0/
+#3880
+1/
+#3920
+0/
+#3960
+1/
+#4000
+0/
+#4040
+1/
+#4050

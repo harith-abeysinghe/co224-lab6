@@ -4,7 +4,8 @@
 
 `include "CPU.v"
 `include "dmem_for_dcache.v"
-
+`include "dcacheFSM_skeleton.v"
+`timescale 1ns/100ps
 module cpu_tb;
 
     reg CLK, RESET;
@@ -57,7 +58,7 @@ module cpu_tb;
     -----
     */
     cpu mycpu(PC, INSTRUCTION, CLK, RESET,BUSYWAIT, READ, WRITE, ADDRESS, WRITEDATA, READDATA);
-    dcache mycache(BUSYWAIT,MEM_READ,MEM_WRITE,MEM_IN,MEM_ADDRESS,READDATA,MEM_BUSYWAIT,MEM_OUT,ADDRESS,WRITEDATA,READ,WRITE,CLK,RESET);
+
     dcache mycache(CLK, READ, WRITE, RESET, BUSYWAIT, MEM_READ, MEM_WRITE, MEM_IN, MEM_ADDRESS, READDATA, MEM_BUSYWAIT, MEM_OUT, ADDRESS, WRITEDATA);
     //module dcache (clk, read, write, reset, busywait ,mem_read ,mem_write ,mem_writedata ,mem_address ,readdata ,mem_busywait ,mem_readdata ,address ,writedata) ;
     
@@ -79,7 +80,7 @@ module cpu_tb;
         RESET = 1'b0;
         
         // finish simulation after some time
-        #150
+        #400
         $finish;
         
     end

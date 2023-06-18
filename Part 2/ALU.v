@@ -1,3 +1,4 @@
+`timescale 1ns/100ps
 module ALU(DATA1, DATA2, RESULT, SELECT,ZERO,SHIFT,CHOICE);
     // Defining ports
     input [7:0] DATA1, DATA2;

@@ -233,12 +233,14 @@ module dcache (clk, read, write, reset, busywait ,mem_read ,mem_write ,mem_write
     end
 
     // sequential logic for state transitioning 
-    always @(posedge clock, reset)
+    always @(posedge clk, reset)
     begin
         if(reset)
+        begin
             state = IDLE;
             validbits = 0;	
             dirtybits = 0; 
+        end
         else
             state = next_state;
     end
