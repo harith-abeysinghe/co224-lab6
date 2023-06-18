@@ -1,4 +1,4 @@
-module reg_file(IN,OUT1,OUT2,INADDRESS,OUT1ADDRESS,OUT2ADDRESS, WRITE, CLK, RESET);
+module reg_file(IN,OUT1,OUT2,INADDRESS,OUT1ADDRESS,OUT2ADDRESS, WRITE, CLK, RESET,BUSYWAIT);
 
     // Defining Ports 
     input [7:0] IN; // The data input port
@@ -13,6 +13,7 @@ module reg_file(IN,OUT1,OUT2,INADDRESS,OUT1ADDRESS,OUT2ADDRESS, WRITE, CLK, RESE
     input WRITE; // The write enable signal
     input CLK; // The clock signal
     input RESET; // The reset signal
+    input BUSYWAIT;
 
     reg [7:0] registers[7:0]; // The array of 8-bit registers
 
@@ -41,7 +42,7 @@ module reg_file(IN,OUT1,OUT2,INADDRESS,OUT1ADDRESS,OUT2ADDRESS, WRITE, CLK, RESE
         
 
         // When WRITE signal is HIGH, data in input port IN should be written to registers[INADDRESS]
-        else if (WRITE) //WRITE Block
+        else if (WRITE && !BUSYWAIT ) //WRITE Block
             begin
                 //$display("Write");
                 #1; // Writing requires a delay of 1 time unit
