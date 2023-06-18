@@ -65,6 +65,99 @@ module dcache (clk, read, write, reset, busywait ,mem_read ,mem_write ,mem_write
     */
     
 
+    // When a read or write is detected, set the busywait signal to high
+    always @(posedge read, posedge write) begin
+        busywait = 1;
+        #1 readfromcache = (read && !write) ? 1 : 0; // Set readfromcache signal if it's a read operation
+        writetocache = (!read && write) ? 1 : 0; // Set writetocache signal if it's a write operation
+    end
+
+    // Extracting data from cache based on readfromcache or writetocache signals
+    always @(validbits, tag[index], index, posedge readfromcache, posedge writetocache, dirtybits) begin
+        if (readfromcache || writetocache) begin
+            #1 tag_of_block = tags[index]; // Extract the corresponding tag of the cache entry selected by the index
+            valid = validbits[index]; // Extract the corresponding valid bit of the cache entry selected by the index
+            dirty = dirtybits[index]; // Extract the corresponding dirty bit of the cache entry selected by the index
+            checkhit = 1; // Signal to indicate the need to check for a hit
+        end
+    end
+
+    // Extracting data words from the cache based on the index and offset
+    always @(posedge readfromcache, cache[index], index, offset) begin
+        #1 case (offset)
+            2'b00: readdata = cache[index][7:0]; // Extract data word from cache at offset 00
+            2'b01: readdata = cache[index][15:8]; // Extract data word from cache at offset 01
+            2'b10: readdata = cache[index][23:16]; // Extract data word from cache at offset 10
+            2'b11: readdata = cache[index][31:24]; // Extract data word from cache at offset 11
+        endcase
+    end
+
+    // Generate hit signal once a read or write is detected or there is a change in tag of a cache entry or valid bit of a cache entry
+    always @(tag_of_block, valid, tag, posedge checkhit) begin
+        checkhit = 0; // Reset checkhit signal to zero
+        if (valid && (tag == tag_of_block)) begin
+            #0.9 hit = 1; // It's a hit if valid and tags are matching, set hit signal to high
+            busywait = 0; // No need to stall the CPU, set busywait signal to 0
+            readfromcache = 0; // If the operation is a write, this signal is used to indicate there is something to write at the end
+                            // Since the write signal of the CPU is deasserted with busywait, this signal is used
+        end
+        else if ((!valid || (tag != tag_of_block))) begin
+            #0.9 hit = 0; // It's a miss if not valid or tags are not matching, set hit signal to 0
+            if (dirty) begin
+                mem_write = 1; // Set memory write signal if the block is dirty
+                mem_address = {tag_of_block, index}; // Set memory address for writing the block
+                mem_writedata = cache[index]; // Write the data from the cache to memory
+            end
+            else begin
+                mem_read = 1; // Set memory read signal if the block is not dirty
+                mem_address = {tag, index}; // Set memory address for reading the missing block
+            end
+        end
+    end
+
+    // Writing data to the cache at the positive clock edge
+    always @(posedge clk) 
+    begin
+        if (hit && writetocache) 
+        begin
+            // Check if there is a cache hit and a write operation is requested
+
+            // Select the correct cache entry based on the index
+            // Select the correct position to be written based on the offset
+            case(offset)
+                2'b00: cache[index][7:0] = writedata;
+                2'b01: cache[index][15:8] = writedata;
+                2'b10: cache[index][23:16] = writedata;
+                2'b11: cache[index][31:24] = writedata;
+            endcase
+
+            // Set the writetocache signal to 0 after writing
+            writetocache = 0;
+
+            // Set the dirty bit of the cache entry high after a write operation
+            // to indicate that the data in the cache is inconsistent with the memory
+            dirtybits[index] = 1;
+        end
+    end
+
+    // The update signal is used in the FSM to indicate that the cache needs to be updated
+    // When the update signal changes from 1 to 0, the cache is updated
+    always @(negedge update) 
+    begin
+        // Write the read data from the memory to the correct cache entry
+        cache[index] = mem_readdata;
+
+        // Set the valid bit high to indicate that the cache entry is valid
+        validbits[index] = 1;
+
+        // Set the dirty bit low to indicate that the cache data is consistent with the memory
+        dirtybits[index] = 0;
+
+        // Update the tag of the cache entry with the new tag value
+        tags[index] = tag;
+    end
+
+
     /* Cache Controller FSM Start */
 
     parameter IDLE = 3'b000, MEM_READ = 3'b001;
