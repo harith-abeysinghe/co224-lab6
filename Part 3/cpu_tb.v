@@ -64,6 +64,9 @@ module cpu_tb;
     
     data_memory mymemory(CLK, RESET, MEM_READ, MEM_WRITE, MEM_ADDRESS, MEM_IN, MEM_OUT, MEM_BUSYWAIT);
     //module data_memory(clock, reset, read, write, address, writedata, readdata, busywait); //for main memory
+
+    icache myIcache(CLK, RESET, ADDRESS, READINST, BUSYWAIT, MEM_READ, MEM_ADDRESS, MEM_INST, MEM_BUSYWAIT)
+    //icache(clock, reset, address, readinst, busywait, mem_read, mem_address, mem_inst, mem_busywait);
     initial
     begin
     
