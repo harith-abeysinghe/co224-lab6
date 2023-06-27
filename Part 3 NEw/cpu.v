@@ -1,20 +1,20 @@
-`include "alu.v"
+`include "ALU.v"
 `include "reg_file.v"
 `timescale 1ns/100ps
 
-module cpu(PC, INSTRUCTION, CLK, RESET, READ, WRITE, ADDRESS, WRITEDATA, READDATA, BUSYWAIT, INSTR_BUSYWAIT);
+module CPU(PC, INSTRUCTION, CLK, RESET, READ, WRITE, ADDRESS, WRITEDATA, READDATA, BUSYWAIT, INSTR_BUSYWAIT);
 
-	//Input Port Declaration
+	//Input Ports
 	input [31:0] INSTRUCTION;
 	input [7:0] READDATA;
 	input CLK, RESET, BUSYWAIT, INSTR_BUSYWAIT;
 
-	//Output Port Declaration
+	//Output Ports
 	output reg [31:0] PC;
 	output [7:0] ADDRESS, WRITEDATA;
 	output reg READ, WRITE;
 
-	//Connections for Register File
+	//Connections for Reg_File
 	wire [2:0] READREG1, READREG2, WRITEREG;
 	wire [7:0] REGOUT1, REGOUT2;
 	reg WRITEENABLE;
@@ -22,7 +22,10 @@ module cpu(PC, INSTRUCTION, CLK, RESET, READ, WRITE, ADDRESS, WRITEDATA, READDAT
 	//Connections for ALU
 	wire [7:0] OPERAND1, OPERAND2, ALURESULT;
 	reg [2:0] ALUOP;
-	wire ZERO;
+	wire ZERO,CHOICE;
+	reg [3:0] SHIFT;
+
+	reg [7:0] OPCODE;
 
 	//Connections for negation MUX
 	wire [7:0] negatedOp;
@@ -33,76 +36,63 @@ module cpu(PC, INSTRUCTION, CLK, RESET, READ, WRITE, ADDRESS, WRITEDATA, READDAT
 	wire [7:0] IMMEDIATE;
 	reg immSelect;
 
-	//PC+4 value and PC value to be updated stored inside CPU
-	wire [31:0] PCplus4;
+	//PC+4 and PCout
+	wire [31:0] PCadd;
 	wire [31:0] PCout;
 	
-	//Connections for BUSYWAIT MUX
+	//BUSYWAIT MUX
 	wire [31:0] newPC;
 
-	//Connections for Jump/Branch Adder
+	//Jump/Branch Adder
 	wire [31:0] TARGET;
 	wire [7:0] OFFSET;
 	
-	//Connections for flow control combinational unit
+	//JUMP, BRANCH control
 	reg JUMP;
 	reg BRANCH;
 
-	//Connections for flow control MUX
+	//flow control MUX
 	wire flowSelect;
 	
-	//Connections to Data memory
+	//Data memory
 	assign ADDRESS = ALURESULT;
 	assign WRITEDATA = REGOUT1;
 	
-	//Connections for data memory MUX
-	reg dataSelect;
-	wire [7:0] REGIN;
-
-	//Current OPCODE stored in CPU
-	reg [7:0] OPCODE;
-
-	//Instantiation of CPU modules
-	//8x8 Register File
-	//Register File WRITEENABLE signal is ANDed with the negation of the BUSYWAIT so that writes do not happen while data memory is busy
-	reg_file my_reg(REGIN, REGOUT1, REGOUT2, WRITEREG, READREG1, READREG2, WRITEENABLE, CLK, RESET);
+	//data memory MUX
+	reg Data_MUX_Select;
+	wire [7:0] REG_INPUT;
+	
+	//Register File 
+	reg_file my_reg(REG_INPUT, REGOUT1, REGOUT2, WRITEREG, READREG1, READREG2, WRITEENABLE, CLK, RESET);
 	
 	//ALU
-	alu my_alu(REGOUT1, OPERAND2, ALURESULT, ZERO, ALUOP);
+	ALU my_alu(REGOUT1, OPERAND2, ALURESULT, ALUOP, ZERO,SHIFT, CHOICE);
 	
-	//2's Complement Unit
-	twosComp my_twosComp(REGOUT2, negatedOp);
+	//2's Complement
+	twoComp my_twoComp(REGOUT2, negatedOp);
 	
-	//Negation MUX (Chooses between +ve and -ve value of REGOUT2)
 	mux negationMUX(REGOUT2, negatedOp, signSelect, registerOp);
-	
-	//Immediate Value MUX (Chooses between immediate value and register value for Operand 2 of ALU)
 	mux immediateMUX(registerOp, IMMEDIATE, immSelect, OPERAND2);
 
 	//PC+4 Adder
-	pcAdder my_pcAdder(PC, PCplus4);
+	PC_Adder PC_adder(PC, PCadd);
 	
 	//Jump/Branch Target Adder
-	jumpbranchAdder my_jumpbranchAdder(PCplus4, OFFSET, TARGET);
+	OFFSETADDER my_OFFSETADDER(PCadd, OFFSET, TARGET);
 	
-	//Flow Control Combinational Logic Unit (Handles combinational logic for select input of Flow Control MUX)
+	//Flow Control
 	flowControl my_flowControl(JUMP, BRANCH, ZERO, flowSelect);
 	
-	//Flow Control MUX (Chooses between normal PC value or offset value for flow control instructions)
-	mux32 flowctrlmux(PCplus4, TARGET, flowSelect, PCout);
+	//Flow Control MUX
+	mux32 flowctrlmux(PCadd, TARGET, flowSelect, PCout);
 	
 	//Data Memory MUX
-	mux datamux(ALURESULT, READDATA, dataSelect, REGIN);
+	mux datamux(ALURESULT, READDATA, Data_MUX_Select, REG_INPUT);
 	
 	//MUX to Change PC value based on BUSYWAIT signal
 	//If BUSYWAIT is HIGH, newPC is the same PC value(Stalled)
 	//Else newPC is next PC value
 	mux32 busywaitMUX(PCout, PC, (BUSYWAIT | INSTR_BUSYWAIT), newPC);
-	
-	
-	//-----------------------
-	// Control Logic for CPU
-	//-----------------------
 	
 	//PC Update
 	always @ (posedge CLK)
@@ -121,17 +111,6 @@ module cpu(PC, INSTRUCTION, CLK, RESET, READ, WRITE, ADDRESS, WRITEDATA, READDAT
 		end
 	end
 	
-	
-	//Relevant portions of INSTRUCTION are mapped to the respective units
-	
-	///////////////////////////////////////////////////////////////////
-	/*    OP-CODE    /     RD/IMM    /       RT      /     RS/IMM    */
-	/*    [31:24]    /    [23:16]    /     [15:8]    /      [7:0]    */
-	///////////////////////////////////////////////////////////////////
-	/*       |       /        |      /        |      /       |       */
-	/*    OPCODE     /    WRITEREG   /    READREG1   /    READREG2   */
-	/*               /     OFFSET    /               /   IMMEDIATE   */
-	/*****************************************************************/
 	assign READREG1 = INSTRUCTION[15:8];
 	assign IMMEDIATE = INSTRUCTION[7:0];
 	assign READREG2 = INSTRUCTION[7:0];
@@ -159,7 +138,7 @@ module cpu(PC, INSTRUCTION, CLK, RESET, READ, WRITE, ADDRESS, WRITEDATA, READDAT
 									WRITEENABLE = 1'b1;		//Enable writing to register
 									READ = 1'b0;			//Set READ control signal to zero
 									WRITE = 1'b0;			//Set WRITE control signal to zero
-									dataSelect = 1'b0;		//Set Data Memory MUX to ALU output 
+									Data_MUX_Select = 1'b0;		//Set Data Memory MUX to ALU output 
 								end
 			
 				//mov instruction
@@ -172,7 +151,7 @@ module cpu(PC, INSTRUCTION, CLK, RESET, READ, WRITE, ADDRESS, WRITEDATA, READDAT
 									WRITEENABLE = 1'b1;		//Enable writing to register
 									READ = 1'b0;			//Set READ control signal to zero
 									WRITE = 1'b0;			//Set WRITE control signal to zero
-									dataSelect = 1'b0;		//Set Data Memory MUX to ALU output
+									Data_MUX_Select = 1'b0;		//Set Data Memory MUX to ALU output
 								end
 				
 				//add instruction
@@ -185,7 +164,7 @@ module cpu(PC, INSTRUCTION, CLK, RESET, READ, WRITE, ADDRESS, WRITEDATA, READDAT
 									WRITEENABLE = 1'b1;		//Enable writing to register
 									READ = 1'b0;			//Set READ control signal to zero
 									WRITE = 1'b0;			//Set WRITE control signal to zero
-									dataSelect = 1'b0;		//Set Data Memory MUX to ALU output
+									Data_MUX_Select = 1'b0;		//Set Data Memory MUX to ALU output
 								end	
 			
 				//sub instruction
@@ -198,7 +177,7 @@ module cpu(PC, INSTRUCTION, CLK, RESET, READ, WRITE, ADDRESS, WRITEDATA, READDAT
 									WRITEENABLE = 1'b1;		//Enable writing to register
 									READ = 1'b0;			//Set READ control signal to zero
 									WRITE = 1'b0;			//Set WRITE control signal to zero
-									dataSelect = 1'b0;		//Set Data Memory MUX to ALU output
+									Data_MUX_Select = 1'b0;		//Set Data Memory MUX to ALU output
 								end
 
 				//and instruction
@@ -211,7 +190,7 @@ module cpu(PC, INSTRUCTION, CLK, RESET, READ, WRITE, ADDRESS, WRITEDATA, READDAT
 									WRITEENABLE = 1'b1;		//Enable writing to register
 									READ = 1'b0;			//Set READ control signal to zero
 									WRITE = 1'b0;			//Set WRITE control signal to zero
-									dataSelect = 1'b0;		//Set Data Memory MUX to ALU output
+									Data_MUX_Select = 1'b0;		//Set Data Memory MUX to ALU output
 								end
 								
 				//or instruction
@@ -222,9 +201,9 @@ module cpu(PC, INSTRUCTION, CLK, RESET, READ, WRITE, ADDRESS, WRITEDATA, READDAT
 									JUMP = 1'b0;			//Set JUMP control signal to zero
 									BRANCH = 1'b0;			//Set BRANCH control signal to zero
 									WRITEENABLE = 1'b1;		//Enable writing to register
-									READ = 1'b0;			//Set READ control signal to zero
-									WRITE = 1'b0;			//Set WRITE control signal to zero
-									dataSelect = 1'b0;		//Set Data Memory MUX to ALU output
+									READ = 1'b0;			
+									WRITE = 1'b0;			
+									Data_MUX_Select = 1'b0;	
 								end
 				
 				//j instruction
@@ -232,9 +211,9 @@ module cpu(PC, INSTRUCTION, CLK, RESET, READ, WRITE, ADDRESS, WRITEDATA, READDAT
 									JUMP = 1'b1;			//Set JUMP control signal to 1
 									BRANCH = 1'b0;			//Set BRANCH control signal to zero
 									WRITEENABLE = 1'b0;		//Disable writing to register
-									READ = 1'b0;			//Set READ control signal to zero
-									WRITE = 1'b0;			//Set WRITE control signal to zero
-									dataSelect = 1'b0;		//Set Data Memory MUX to ALU output
+									READ = 1'b0;			
+									WRITE = 1'b0;			
+									Data_MUX_Select = 1'b0;		
 								end
 				
 				//beq instruction
@@ -244,10 +223,10 @@ module cpu(PC, INSTRUCTION, CLK, RESET, READ, WRITE, ADDRESS, WRITEDATA, READDAT
 									signSelect = 1'b1;		//Set sign select MUX to negative sign
 									JUMP = 1'b0;			//Set JUMP control signal to zero
 									BRANCH = 1'b1;			//Set BRANCH control signal to 1
-									WRITEENABLE = 1'b0;		//Disable writing to register
-									READ = 1'b0;			//Set READ control signal to zero
-									WRITE = 1'b0;			//Set WRITE control signal to zero
-									dataSelect = 1'b0;		//Set Data Memory MUX to ALU output
+									WRITEENABLE = 1'b0;		
+									READ = 1'b0;			
+									WRITE = 1'b0;			
+									Data_MUX_Select = 1'b0;		
 								end
 								
 				//lwd instruction
@@ -257,10 +236,10 @@ module cpu(PC, INSTRUCTION, CLK, RESET, READ, WRITE, ADDRESS, WRITEDATA, READDAT
 									signSelect = 1'b0;		//Set sign select MUX to positive sign
 									JUMP = 1'b0;			//Set JUMP control signal to zero
 									BRANCH = 1'b0;			//Set BRANCH control signal to zero
-									WRITEENABLE = 1'b1;		//Enable writing to register
-									READ = 1'b1;			//Set READ control signal to HIGH
-									WRITE = 1'b0;			//Set WRITE control signal to zero
-									dataSelect = 1'b1;		//Set Data Memory MUX to Data memory input
+									WRITEENABLE = 1'b1;		
+									READ = 1'b1;			
+									WRITE = 1'b0;			
+									Data_MUX_Select = 1'b1;	
 								end
 								
 				//lwi instruction
@@ -270,10 +249,10 @@ module cpu(PC, INSTRUCTION, CLK, RESET, READ, WRITE, ADDRESS, WRITEDATA, READDAT
 									signSelect = 1'b0;		//Set sign select MUX to positive sign
 									JUMP = 1'b0;			//Set JUMP control signal to zero
 									BRANCH = 1'b0;			//Set BRANCH control signal to zero
-									WRITEENABLE = 1'b1;		//Enable writing to register
-									READ = 1'b1;			//Set READ control signal to HIGH
-									WRITE = 1'b0;			//Set WRITE control signal to zero
-									dataSelect = 1'b1;		//Set Data Memory MUX to Data memory input
+									WRITEENABLE = 1'b1;		
+									READ = 1'b1;			
+									WRITE = 1'b0;			
+									Data_MUX_Select = 1'b1;		
 								end
 				
 				//swd instruction
@@ -283,9 +262,9 @@ module cpu(PC, INSTRUCTION, CLK, RESET, READ, WRITE, ADDRESS, WRITEDATA, READDAT
 									signSelect = 1'b0;		//Set sign select MUX to positive sign
 									JUMP = 1'b0;			//Set JUMP control signal to zero
 									BRANCH = 1'b0;			//Set BRANCH control signal to zero
-									WRITEENABLE = 1'b0;		//Enable writing to register
-									READ = 1'b0;			//Set READ control signal to zero
-									WRITE = 1'b1;			//Set WRITE control signal to HIGH
+									WRITEENABLE = 1'b0;		
+									READ = 1'b0;			
+									WRITE = 1'b1;			
 								end
 								
 				//swi instruction
@@ -295,9 +274,9 @@ module cpu(PC, INSTRUCTION, CLK, RESET, READ, WRITE, ADDRESS, WRITEDATA, READDAT
 									signSelect = 1'b0;		//Set sign select MUX to positive sign
 									JUMP = 1'b0;			//Set JUMP control signal to zero
 									BRANCH = 1'b0;			//Set BRANCH control signal to zero
-									WRITEENABLE = 1'b0;		//Enable writing to register
-									READ = 1'b0;			//Set READ control signal to zero
-									WRITE = 1'b1;			//Set WRITE control signal to HIGH
+									WRITEENABLE = 1'b0;		
+									READ = 1'b0;			
+									WRITE = 1'b1;			
 								end
 			endcase
 		//end
@@ -305,56 +284,46 @@ module cpu(PC, INSTRUCTION, CLK, RESET, READ, WRITE, ADDRESS, WRITEDATA, READDAT
 	
 endmodule
 
-module twosComp(IN, OUT);
+module twoComp(IN, OUT);
 
-	//Declaration of input and output ports
+	//input and output ports
 	input [7:0] IN;
 	output [7:0] OUT;
-	
-	//Combinational logic to assign two's complement value of input to output after a delay of #1
 	assign #1 OUT = ~IN + 1;
 
 endmodule
 
 
-//The Jump/Branch Adder calculates the target instruction address by adding the offset value to the PC+4 value
-//after sign extension and multiplication by 4
-//Contains a delay of 2 time units
-module jumpbranchAdder(PC, OFFSET, TARGET);
+module OFFSETADDER(PC, OFFSET, TARGET);
 	
-	//Declaration of input and output ports
+	//input and output ports
 	input [31:0] PC;
 	input [7:0] OFFSET;
 	output [31:0] TARGET;
 	
-	wire [21:0] signBits;		//Bus to store extended sign bits
+	wire [21:0] signBits;
 	
-	assign signBits = {22{OFFSET[7]}};	//assigning the sign bit (MSB) of OFFSET to all 22 bits in signBits
+	assign signBits = {22{OFFSET[7]}};
 	
-	//GENERATING TARGET address by adding the OFFSET * 4 to the PC value after a delay of 2 time units
-	//First 22 bits contain the extended sign bits, next 8 bits contain the actual offset, the next two bits are zeros due to shifting left by 2 (multiplication by 4)
 	assign #2 TARGET = PC + {signBits, OFFSET, 2'b0};	
 	
 endmodule
 
 
-//The pcAdder module generates the PC+4 value from the PC input after a delay of 1 time unit
-module pcAdder(PC, PCplus4);
+//The PC_Adder module 
+module PC_Adder(PC, PCadd);
 	
-	//Declaration of input and output ports
+	//input and output ports
 	input [31:0] PC;
-	output [31:0] PCplus4;
+	output [31:0] PCadd;
 
-	//Assign PC+4 value to the output after 1 time unit delay
-	assign #1 PCplus4 = PC + 4;
+	//Assign PC+4 value
+	assign #1 PCadd = PC + 4;
 	
 endmodule
 
 
-//Generic 8-bit MUX module to be used inside the CPU
-//Operation: SELECT == 0 : OUT = IN1
-//			 SELECT == 1 : OUT = IN2
-//Does not contain delays
+
 module mux(IN1, IN2, SELECT, OUT);
 
 	//Input and output port declaration
@@ -362,26 +331,21 @@ module mux(IN1, IN2, SELECT, OUT);
 	input SELECT;
 	output reg [7:0] OUT;
 	
-	//MUX should update output value upon change of any of the inputs
 	always @ (IN1, IN2, SELECT)
 	begin
-		if (SELECT == 1'b1)		//If SELECT is HIGH, switch to 2nd input
-		begin
-			OUT = IN2;
-		end
-		else					//If SELECT is LOW, switch to 1st input
-		begin
-			OUT = IN1;
-		end
+		if (SELECT == 1'b1)		
+			begin
+				OUT = IN2;
+			end
+		else					
+			begin
+				OUT = IN1;
+			end
 	end
 
 endmodule
 
 
-//32-bit MUX module for flow control operations
-//Operation: SELECT == 0 : OUT = IN1
-//			 SELECT == 1 : OUT = IN2
-//Does not contain delays
 module mux32(IN1, IN2, SELECT, OUT);
 
 	//Input and output port declaration
@@ -389,35 +353,28 @@ module mux32(IN1, IN2, SELECT, OUT);
 	input SELECT;
 	output reg [31:0] OUT;
 	
-	//MUX should update output value upon change of any of the inputs
+
 	always @ (IN1, IN2, SELECT)
 	begin
-		if (SELECT == 1'b1)		//If SELECT is HIGH, switch to 2nd input
-		begin
-			OUT = IN2;
-		end
-		else					//If SELECT is LOW, switch to 1st input
-		begin
-			OUT = IN1;
-		end
+		if (SELECT == 1'b1)		
+			begin
+				OUT = IN2;
+			end
+		else					
+			begin
+				OUT = IN1;
+			end
 	end
 
 endmodule
 
 
-//Combinational Control Unit for flow control operations
-//Operation: JUMP = 0  BRANCH = 0          : OUT = 0 (Normal flow)
-//			 JUMP = 1                      : OUT = 1 (Offset flow)
-//			 JUMP = 0  BRANCH = 1 ZERO = 0 : OUT = 0 (Normal flow)
-//			 JUMP = 0  BRANCH = 1 ZERO = 1 : OUT = 1 (Offset flow)
-//Contains no delays
 module flowControl(JUMP, BRANCH, ZERO, OUT);
 
 	//Input and output port declaration
 	input JUMP, BRANCH, ZERO;
 	output OUT;
-	
-	//Assigns OUT based on values of JUMP, BRANCH and ZERO using simple combinational logic
+
 	assign OUT = JUMP | (BRANCH & ZERO);
 
 endmodule

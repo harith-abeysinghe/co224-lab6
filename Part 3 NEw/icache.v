@@ -1,22 +1,22 @@
-
 `timescale 1ns/100ps
 
-module icache(clock, reset, address, readinst, busywait, mem_read, mem_address, mem_inst, mem_busywait);
+module icache(CLK, RESET, ADDRESS, readinst, BUSYWAIT, mem_read, mem_ADDRESS, mem_inst, mem_BUSYWAIT);
 
 	//Input and output port declaration
-	input clock, reset, mem_busywait;
-	input [9:0] address;
+	input CLK, RESET, mem_BUSYWAIT;
+
+	//The CPU accesses a single instruction word at a time using a 10-bit word address
+	input [9:0] ADDRESS;
 	input [127:0] mem_inst;
 	
-	output reg mem_read, busywait;
-	output reg [5:0] mem_address;
+	output reg mem_read, BUSYWAIT;
+	output reg [5:0] mem_ADDRESS;
 	output [31:0] readinst;
 	
 	//Instruction Cache Storage
 	reg [127:0] instr_block_array [7:0];
-	reg tag_array [7:0];
-	reg valid_array [7:0];
-
+	reg tagbits [7:0];
+	reg validbits [7:0];
 
 	//Variables for indexing
 	wire [2:0] tag, index;
@@ -24,65 +24,59 @@ module icache(clock, reset, address, readinst, busywait, mem_read, mem_address, 
 	
 	wire [127:0] instr_block;
 	wire [2:0] cache_tag;
-	wire valid;
+	wire VALID;
 	
 	//Variables for tag comparison and validation
 	wire tagMatch;
-	wire hit;
+	wire HIT;
 	
 	//Wires for instruction word selection
 	reg [31:0] loaded_instr;
 	
 	
-	//Asserting busywait signal upon read control signal
-	always @ (address)	busywait = 1'b1;
+	//Asserting BUSYWAIT signal upon read control signal
+	always @ (ADDRESS)	BUSYWAIT = 1'b1;
 	
 
-	//Breaking down address
-	assign {tag, index, offset} = address[9:2];
+	//The instruction cache should split the address into Tag, Index and Offset sections
+	assign {tag, index, offset} = ADDRESS[9:2];
 
 	//Indexing of cache storage
 	assign #1 instr_block = instr_block_array[index];
-	assign #1 cache_tag = tag_array[index];
-	assign #1 valid = valid_array[index];
+	assign #1 cache_tag = tagbits[index];
+	assign #1 VALID = validbits[index];
 	
 	
 	//Tag comparison
 	assign #0.9 tagMatch = (tag == cache_tag)? 1:0;
 
-	//Assigning hit status based on tag comparison and validation
-	assign hit = tagMatch & valid;
-	
-	
+	//Assigning HIT value
+	assign HIT = tagMatch & VALID;
 	
 	//Instruction Word Selection
 	always @ (*)
 	begin
 		case (offset)
 			2'b00:	loaded_instr = #1 instr_block[31:0];
-			
 			2'b01:	loaded_instr = #1 instr_block[63:32];
-			
 			2'b10:	loaded_instr = #1 instr_block[95:64];
-			
 			2'b11:	loaded_instr = #1 instr_block[127:96];
 		endcase
-	
 	end
 	
-	//Assigning selected instruction word to output if it is a hit
-	assign readinst = (hit)? loaded_instr:32'bx;
-	
-	
-	
-	//Read Hit Handling
-	always @ (clock) if (hit) busywait = 1'b0;
-	
+	//Assigning selected instruction word to output if it is a HIT
+	assign readinst = (HIT)? loaded_instr:32'bx;
 	
 
+	always @ (CLK) 
+		if (HIT) 
+			BUSYWAIT = 1'b0;
 	
 	/* Cache Controller FSM Start */
-    parameter IDLE = 3'b000, MEM_READ = 3'b001;
+	// This section implements the finite state machine (FSM) for the cache controller.
+	// It controls the state transitions and output values based on the current state and input conditions.
+    
+	parameter IDLE = 3'b000, MEM_READ = 3'b001;
     reg [2:0] state, next_state;
 	
 	// combinational next state logic
@@ -90,21 +84,19 @@ module icache(clock, reset, address, readinst, busywait, mem_read, mem_address, 
     begin
         case (state)
             IDLE:
-                if (!hit)  
+                if (!HIT)  
                     next_state = MEM_READ;
                 else
                     next_state = IDLE;
             
             MEM_READ:
-                if (!mem_busywait)
+                if (!mem_BUSYWAIT)
                     next_state = IDLE;
                 else    
                     next_state = MEM_READ;
-
         endcase
     end
 	
-
     // combinational output logic
     always @ (*)
     begin
@@ -112,53 +104,43 @@ module icache(clock, reset, address, readinst, busywait, mem_read, mem_address, 
             IDLE:
             begin
                 mem_read = 0;
-                mem_address = 8'dx;
-                //busywait = 0;
+                mem_ADDRESS = 8'dx;
             end
          
             MEM_READ: 
             begin
-				busywait = 1;
+				BUSYWAIT = 1;
                 mem_read = 1;
-                mem_address = {tag, index};
-                
-                // waiting until mem_busywait=0 and then takin #1 unit read data from instruction memory
-                // At the same time valid bit and the tag array bit is changed with relevant value
+                mem_ADDRESS = {tag, index};
                 #1 
-				if(mem_busywait == 0) 
+
+				if(mem_BUSYWAIT == 0) 
 				begin
 					mem_read = 0;
-					mem_address = 8'dx;
+					mem_ADDRESS = 8'dx;
                     instr_block_array[index]  = mem_inst;
-                    if (mem_inst != 32'dx) valid_array[index] = 1;
-                    tag_array[index] = tag;
+                    if (mem_inst != 32'dx) validbits[index] = 1;
+                    tagbits[index] = tag;
                 end
-
-            end
-
-            
+            end 
         endcase
     end
 
-
     // sequential logic for state transitioning
 	integer i;
-    always @(posedge clock, reset)
+    always @(posedge CLK, RESET)
     begin
-        if(reset) begin
-            state = IDLE;
-            for(i = 0 ; i<8 ;i = i+1) begin
-                valid_array[i] = 0;
-            end
-        end
+        if(RESET) 
+			begin
+				state = IDLE;
+				for(i = 0 ; i<8 ;i = i+1) 
+					begin
+						validbits[i] = 0;
+					end
+			end
         else
             state = next_state;
     end
-	
-	
-	
+
 	/* Cache Controller FSM End */
-	
-
-
 endmodule

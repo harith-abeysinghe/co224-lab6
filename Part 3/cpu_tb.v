@@ -31,40 +31,12 @@ module cpu_tb;
 	wire [5:0] IM_ADDRESS;
 	wire [127:0] IM_INSTR;
 	
-	
-	
-	/*
-	------------
-	DATA MEMORY
-	------------
-    */
+
 	data_memory my_datamem(CLK, RESET, DM_READ, DM_WRITE, DM_ADDRESS, DM_WRITEDATA, DM_READDATA, DM_BUSYWAIT);
-	/*
-	------------
-	DATA CACHE
-	------------
-    */
 	dcache my_datacache (CLK, RESET, CPU_READ, CPU_WRITE, CPU_ADDRESS, CPU_WRITEDATA, CPU_READDATA, CPU_BUSYWAIT, DM_READ, DM_WRITE, DM_ADDRESS, DM_WRITEDATA, DM_READDATA, DM_BUSYWAIT);
-	/*
-	------------------
-	INSTRUCTION CACHE
-	------------------
-    */
 	icache my_icache(CLK, RESET, PC[9:0], INSTRUCTION, INSTR_BUSYWAIT, IM_READ, IM_ADDRESS, IM_INSTR, IM_BUSYWAIT);
-	/*
-	------------------
-	INSTRUCTION MEMORY
-	------------------
-    */
 	instruction_memory my_imemory(CLK, IM_READ, IM_ADDRESS, IM_INSTR, IM_BUSYWAIT);
-	
-	
-    /* 
-    -----
-     CPU
-    -----
-    */
-    cpu mycpu(PC, INSTRUCTION, CLK, RESET, CPU_READ, CPU_WRITE, CPU_ADDRESS, CPU_WRITEDATA, CPU_READDATA, CPU_BUSYWAIT, INSTR_BUSYWAIT);
+    CPU mycpu(PC, INSTRUCTION, CLK, RESET, CPU_READ, CPU_WRITE, CPU_ADDRESS, CPU_WRITEDATA, CPU_READDATA, CPU_BUSYWAIT, INSTR_BUSYWAIT);
     
    initial
     begin
