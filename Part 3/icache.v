@@ -59,7 +59,8 @@ module icache(clock, reset, address, readinst, busywait, mem_read, mem_address, 
 	end
 	
 	//Assigning selected instruction word to output if it is a hit
-	assign readinst = (hit) ? loaded_instr : 32'bx; // If it's a hit, assign the selected instruction word to the output; otherwise, assign an "x" value
+	assign readinst = (hit) ? loaded_instr : 32'bx; 
+	// If it's a hit, assign the selected instruction word to the output; otherwise, assign an "x" value
 	
 	//Read Hit Handling
 	always @ (clock)
@@ -139,7 +140,4 @@ module icache(clock, reset, address, readinst, busywait, mem_read, mem_address, 
 	end
 	/* Cache Controller FSM End */
 	
-	// initial begin
-	// $monitor(address);
-	// end
 endmodule

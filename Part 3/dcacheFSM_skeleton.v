@@ -10,7 +10,7 @@ This file presents a skeleton implementation of the cache controller using a Fin
 `timescale 1ns/100ps
 
 
-module dcache (clk, read, write, reset, busywait ,mem_read ,mem_write ,mem_writedata ,mem_address ,readdata ,mem_busywait ,mem_readdata ,address ,writedata) ;
+module dcache (clk, reset, read, write, address, writedata, readdata, busywait,mem_read, mem_write, mem_address, mem_writedata, mem_readdata, mem_busywait) ;
     //mem - Main memory , Has 32 bits for readdata, writedata, 5 bits for address
     input read,write,mem_busywait,clk,reset;
     input [7:0] writedata,address;

@@ -3,22 +3,17 @@
 `timescale 1ns/100ps
 
 
-module cpu(PC,INSTRUCTION,CLK,RESET,BUSYWAIT, READMEM, WRITEMEM, ADDRESS, WRITEDATA, READDATA);
-    //Input
-    input [31:0] INSTRUCTION;
-    input CLK,RESET;
+module cpu(PC, INSTRUCTION, CLK, RESET, READ, WRITE, ADDRESS, WRITEDATA, READDATA, BUSYWAIT, INSTR_BUSYWAIT);
 
-    //output
-    output reg [31:0] PC;
+	//Input Port Declaration
+	input [31:0] INSTRUCTION;
+	input [7:0] READDATA;
+	input CLK, RESET, BUSYWAIT, INSTR_BUSYWAIT;
 
-	//New wires and regs for data memory
-	//----------------------------------
-	input BUSYWAIT;
-    input [7:0] READDATA;
-
-	output reg READMEM, WRITEMEM;
-    output [7:0] ADDRESS, WRITEDATA;
-	//----------------------------------
+	//Output Port Declaration
+	output reg [31:0] PC;
+	output [7:0] ADDRESS, WRITEDATA;
+	output reg READ, WRITE;
 
     //Wires for reg_file
     wire [2:0] READREG1, READREG2, WRITEREG;
@@ -42,13 +37,14 @@ module cpu(PC,INSTRUCTION,CLK,RESET,BUSYWAIT, READMEM, WRITEMEM, ADDRESS, WRITED
 	reg immSelect;
 	
 	//reg for PC
-	reg [31:0] PCreg;
+	wire [31:0] PCreg;
+
 	
 	//reg for OPCODE
 	reg [7:0] OPCODE;
 
     //Instantiation reg_file
-	reg_file reg_file1(ALURESULT, REGOUT1, REGOUT2, WRITEREG, READREG1, READREG2, WRITEENABLE, CLK, RESET,BUSYWAIT);
+	reg_file reg_file1(ALURESULT, REGOUT1, REGOUT2, WRITEREG, READREG1, READREG2, WRITEENABLE, CLK, RESET);
 	
 	//Instantiation alu
 	ALU alu1(REGOUT1, OPERAND2, ALURESULT, ALUOP, ZERO,Shift,Shift_Choice);
@@ -62,6 +58,7 @@ module cpu(PC,INSTRUCTION,CLK,RESET,BUSYWAIT, READMEM, WRITEMEM, ADDRESS, WRITED
 
 	//Adder ports
 	//PC,PCreg Already defined
+	PC_Adder my_pcAdder(PC, PCreg);
 
 	//Target Adder
 	wire [31:0] offset_out ;
@@ -97,27 +94,30 @@ module cpu(PC,INSTRUCTION,CLK,RESET,BUSYWAIT, READMEM, WRITEMEM, ADDRESS, WRITED
 	reg SEL_MUX4 = 0;
 	wire [7:0] MUX5;
 	mux mux4(ALURESULT, READDATA,SEL_MUX4, MUX5);
+
+
+	//NewPC2
+	wire [31:0] NewPC2;
+
+	//MUX to Change PC value based on BUSYWAIT signal
+	//If BUSYWAIT is HIGH, newPC is the same PC value(Stalled)
+	//Else newPC is next PC value
+	muxNew busywaitMUX(NewPC, PC, (BUSYWAIT | INSTR_BUSYWAIT), NewPC2);
 	
 	
-	//Update PC in every positive edge clock cycles
-	always @ ( posedge CLK)
+	//PC Update
+	always @ (posedge CLK)
 	begin
-		if (RESET == 1'b1) 
-		begin  // Reset the PC counter
-			#1
-			PC = 0;	
-			PCreg = 0;
-		end
-		else if (BUSYWAIT == 1'b1);	
-		else #1 PC = NewPC;	// Else update the PC counter
+		if (RESET == 1'b1) #1 PC = 0;		//If RESET signal is HIGH, set PC to zero
+		else #1 PC = NewPC;					//Write new PC value
 	end
 	
 	
-	//Increase the PC counter
+	/* //Increase the PC counter
 	always @ (PC)
 	begin
 		#1 PCreg = PCreg + 4;
-	end
+	end */
 
     //Split the instruction word into acording registeraddres and opcodes
     assign READREG1 = INSTRUCTION[15:8];
@@ -125,9 +125,6 @@ module cpu(PC,INSTRUCTION,CLK,RESET,BUSYWAIT, READMEM, WRITEMEM, ADDRESS, WRITED
 	assign READREG2 = INSTRUCTION[7:0];
 	assign WRITEREG = INSTRUCTION[23:16];
 	assign Shift = INSTRUCTION[7:0];
-	
-	assign in2_multi = INSTRUCTION[7:0];
-	assign in1_multi = INSTRUCTION[15:8];
 	
 
     //Controller unit for decoding the instruction
@@ -302,8 +299,8 @@ module cpu(PC,INSTRUCTION,CLK,RESET,BUSYWAIT, READMEM, WRITEMEM, ADDRESS, WRITED
 								immSelect = 0;   		//Selecting the immediate operand
 								ALUOP = 3'b000;		//selecting the ADD operation from ALU
 								bj = 2'b00; 	//normal flow
-								READMEM = 1;			//assigning the READMEM into 1
-								WRITEMEM = 0;
+								READ = 1;			//assigning the READ into 1
+								WRITE = 0;
 								
 								SEL_MUX4 = 1;
 								
@@ -318,8 +315,8 @@ module cpu(PC,INSTRUCTION,CLK,RESET,BUSYWAIT, READMEM, WRITEMEM, ADDRESS, WRITED
 								immSelect = 1;   		//Selecting the immediate operand
 								ALUOP = 3'b000;		//selecting the ADD operation from ALU
 								bj = 2'b00; 	//normal flow
-								READMEM = 1;			//assigning the READMEM into 1
-								WRITEMEM = 0;
+								READ = 1;			//assigning the READ into 1
+								WRITE = 0;
 								//MUX5 = 1;			//selecting the readdata value into the register file
 								SEL_MUX4 = 1;
 								
@@ -331,8 +328,8 @@ module cpu(PC,INSTRUCTION,CLK,RESET,BUSYWAIT, READMEM, WRITEMEM, ADDRESS, WRITED
 								immSelect = 0;   		//Selecting the immediate operand
 								ALUOP = 3'b000;		//selecting the ADD operation from ALU
 								bj = 2'b00; 	//normal flow
-								WRITEMEM = 1;		//assigning the WRITEMEM into 1
-								READMEM = 0;
+								WRITE = 1;		//assigning the WRITE into 1
+								READ = 0;
 				
 								SEL_MUX4 = 0;
 							end
@@ -343,8 +340,8 @@ module cpu(PC,INSTRUCTION,CLK,RESET,BUSYWAIT, READMEM, WRITEMEM, ADDRESS, WRITED
 								immSelect = 1;   		//Selecting the immediate operand
 								ALUOP = 3'b000;		//selecting the ADD operation from ALU
 								bj = 2'b00; 	//normal flow
-								WRITEMEM = 1;		//assigning the WRITEMEM into 1
-								READMEM = 0;
+								WRITE = 1;		//assigning the WRITE into 1
+								READ = 0;
 								
 								SEL_MUX4 = 0;
 								
@@ -358,8 +355,8 @@ always @(BUSYWAIT)
 	begin
 		if(~BUSYWAIT) 
 		begin
-			READMEM=0;
-			WRITEMEM=0;
+			READ=0;
+			WRITE=0;
 		end
 	end
 
@@ -450,7 +447,7 @@ module flowcontrol(branch_jump, zero, out);
     input [1:0] branch_jump;
     output out; //output port declaration
 
-    assign out = branch_jump[0] ^ (branch_jump[1] & zero);
+    assign out = branch_jump[0] | (branch_jump[1] & zero);
 
 	/*
 		branch_jump = branch , jump

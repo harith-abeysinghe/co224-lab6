@@ -1,13 +1,12 @@
-// Computer Architecture (CO224) - Lab 06
-// Design: Testbench of Integrated CPU of Simple Processor with Data Memory
-// Author: Isuru Nawinne
-
-`include "CPU.v"
-`include "dmem_for_dcache.v"
-`include "dcacheFSM_skeleton.v"
-`include "icache.v"
-`include "imem_for_icache.v"
+// Computer Architecture (CO224) - Lab 05
+// Design: Testbench of Integrated CPU of Simple Processor
+// Author: Kisaru Liyanage
 `timescale 1ns/100ps
+`include "cpu.v"
+`include "dmem_for_dcache.v"
+`include "imem_for_icache.v"
+`include "icache.v"
+`include "dcache.v"
 module cpu_tb;
 
     reg CLK, RESET;
@@ -39,18 +38,24 @@ module cpu_tb;
 	------------
     */
 	data_memory my_datamem(CLK, RESET, DM_READ, DM_WRITE, DM_ADDRESS, DM_WRITEDATA, DM_READDATA, DM_BUSYWAIT);
+	
 	/*
 	------------
 	DATA CACHE
 	------------
     */
-	dcache my_datacache (CLK, RESET, CPU_READ, CPU_WRITE, CPU_ADDRESS, CPU_WRITEDATA, CPU_READDATA, CPU_BUSYWAIT, DM_READ, DM_WRITE, DM_ADDRESS, DM_WRITEDATA, DM_READDATA, DM_BUSYWAIT);
+	data_cache my_datacache (CLK, RESET, CPU_READ, CPU_WRITE, CPU_ADDRESS, CPU_WRITEDATA, CPU_READDATA, CPU_BUSYWAIT, DM_READ, DM_WRITE, DM_ADDRESS, DM_WRITEDATA, DM_READDATA, DM_BUSYWAIT);
+
+
+
 	/*
 	------------------
 	INSTRUCTION CACHE
 	------------------
     */
 	icache my_icache(CLK, RESET, PC[9:0], INSTRUCTION, INSTR_BUSYWAIT, IM_READ, IM_ADDRESS, IM_INSTR, IM_BUSYWAIT);
+	
+	
 	/*
 	------------------
 	INSTRUCTION MEMORY
@@ -65,8 +70,8 @@ module cpu_tb;
     -----
     */
     cpu mycpu(PC, INSTRUCTION, CLK, RESET, CPU_READ, CPU_WRITE, CPU_ADDRESS, CPU_WRITEDATA, CPU_READDATA, CPU_BUSYWAIT, INSTR_BUSYWAIT);
-    
-   initial
+
+    initial
     begin
     
         // generate files needed to plot the waveform using GTKWave
@@ -89,4 +94,6 @@ module cpu_tb;
     // clock signal generation
     always
         #4 CLK = ~CLK;
+        
+
 endmodule
