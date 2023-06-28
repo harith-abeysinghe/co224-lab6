@@ -13,7 +13,7 @@ module data_cache(clock, reset, read, write, address, cpu_writeData, cpu_readDat
 	//Port declaration for clock and reset
 	input clock, reset;
 	
-	//Port Declaration for CPU side
+	//Port Declaration for Cache side
 	input read, write;
 	input [7:0] address;
 	input [7:0] cpu_writeData;

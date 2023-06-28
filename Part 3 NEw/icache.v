@@ -6,11 +6,16 @@ module icache(CLK, RESET, ADDRESS, readinst, BUSYWAIT, mem_read, mem_ADDRESS, me
 	input CLK, RESET, mem_BUSYWAIT;
 
 	//The CPU accesses a single instruction word at a time using a 10-bit word address
+	// Last 2 LSBs are zero
 	input [9:0] ADDRESS;
+
+	//cache size 128 bits
 	input [127:0] mem_inst;
 	
 	output reg mem_read, BUSYWAIT;
 	output reg [5:0] mem_ADDRESS;
+
+	//insturcion size 32 bits
 	output [31:0] readinst;
 	
 	//Instruction Cache Storage
@@ -20,6 +25,8 @@ module icache(CLK, RESET, ADDRESS, readinst, BUSYWAIT, mem_read, mem_ADDRESS, me
 
 	//Variables for indexing
 	wire [2:0] tag, index;
+
+	//16 blocks - 4 bits - 2bits are Zero
 	wire [1:0] offset;
 	
 	wire [127:0] instr_block;
