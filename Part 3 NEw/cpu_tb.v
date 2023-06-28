@@ -53,7 +53,7 @@ module cpu_tb;
 		#5
 		RESET = 1'b0;
 
-        #700
+        #2500
         $finish;
         
     end

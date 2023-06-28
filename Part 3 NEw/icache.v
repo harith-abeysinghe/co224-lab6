@@ -42,7 +42,7 @@ module icache(CLK, RESET, ADDRESS, readinst, BUSYWAIT, mem_read, mem_ADDRESS, me
 	
 	
 	//Asserting BUSYWAIT signal upon read control signal
-	always @ (ADDRESS)	BUSYWAIT = 1'b1;
+	always @ (ADDRESS)	 BUSYWAIT = 1'b1;
 	
 
 	//The instruction cache should split the address into Tag, Index and Offset sections
